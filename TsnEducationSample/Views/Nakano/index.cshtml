@@ -1,0 +1,320 @@
+﻿﻿@model List<TsnEducationSample.Models.TodoItem>
+@{
+    ViewBag.Title = "サンプル";
+}
+<main aria-labelledby="title">
+    <div class="row">
+        <div class="d-flex flex-row justify-content-between mb-3">
+            <h3>MyTodo</h3>
+            @Html.ActionLink("サンプル一覧画面へ戻る", "Sample", "Home", new { area = "" }, new { @class = "dashboard-link" })
+        </div>
+        <form>
+            <div class="d-flex flex-row gap-2">
+                <input class="form-control" type="text" id="todoTitle" placeholder="タイトルを入力" />
+                <input class="form-control" type="date" id="tododay" placeholder="期日の入力" />
+                <button class="btn btn-primary " type="button" id="todoSubmit">TODO追加</button>
+
+            </div>
+        </form>
+        <div id="todoListTable">
+            @using (Html.BeginForm("SaveTodoItems", "Todo", FormMethod.Post, new { @id = "LayoutForm" }))
+            {
+                <div style="display:flex; flex-direction:row; justify-content:space-between;">
+                    <h4>TODOリスト一覧</h4>
+                    <button class=" btn btn-primary mb-2" type="button" id="saveTodo">保存</button>
+                </div>
+                <table class="table table-bordered" id="todoTable">
+                    <thead>
+                        <tr>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">操作</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">タイトル</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">説明</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">期日</font></font></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            @{string style = string.Empty;
+                                //TODOアイテムを保存している場合はデフォルト行を非表示
+                                if (Model.Any())
+                                {
+                                    style = "display:none;";
+                                }
+                                <td colspan="3" id="defaultFirstRow" style="text-align: center; @style">表示する項目がありません。</td>
+                            }
+                        </tr>
+                        <!--データ表示-->
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    <button class="btn btn-outline-success" type="button" id="EditTodoItem">編集</button>
+                                    <button class="btn btn-outline-danger" type="button" id="deleteTodoItem">削除</button>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Title</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Description</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.day</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        </div>
+    </div>
+</main>
+@section scripts{
+    <script type="text/javascript">
+
+        //#region TODOリストの処理
+
+        // 追加ボタンを作成
+        function addTasks(Title,day) {
+            //デフォルト行を取得
+            var defaultFirstRow = $('#defaultFirstRow');
+            //デフォルト表示を非表示にする
+            defaultFirstRow.hide();
+            // tbody要素を取得
+            var todoTableBody = $('#todoTable tbody')[0];
+            // tbody要素に最下行を追加
+            var trElem = todoTableBody.insertRow(-1);
+            // td要素(セル要素)を追加
+            var btnCellElem = trElem.insertCell(0);
+            var titleCellElem = trElem.insertCell(1);
+            var descriptionCellElem = trElem.insertCell(2);
+            var dayCellElem = trElem.insertCell(3);
+
+            //編集ボタンの列
+            var EditBtn = document.createElement('button');
+            EditBtn.id = "EditTodoItem";
+            EditBtn.className = "btn btn-outline-success";
+            EditBtn.type = "button";
+            EditBtn.innerHTML = "編集";
+            btnCellElem.appendChild(EditBtn);
+            btnCellElem.classList.add("text-center");
+            //削除ボタンの列
+            var deleteBtn = document.createElement('button');
+            deleteBtn.id = "deleteTodoItem";
+            deleteBtn.className = "btn btn-outline-danger";
+            deleteBtn.type = "button";
+            deleteBtn.innerHTML = "削除";
+            btnCellElem.appendChild(deleteBtn);
+            btnCellElem.classList.add("text-center");
+            //タイトル列
+            var titleCell = document.createElement('span');
+            titleCell.className = "todoContents";
+            titleCell.innerHTML = Title;
+            titleCellElem.appendChild(titleCell);
+            //説明列
+            var descriptionCell = titleCell.cloneNode(false);
+            descriptionCellElem.appendChild(descriptionCell);
+            //期日列
+            var dayCell = document.createElement('span2');
+            dayCell.className = "todoContents";
+            dayCell.innerHTML = day;
+            dayCellElem.appendChild(dayCell);
+        };
+
+        // 編集ボタンに編集機能を付与
+        function editTask(editBtn) {
+            // 1. 編集したい行(tr)を取得
+            var row = $(editBtn).closest('tr');
+
+            // 2. タスク内容が表示されているセルを取得（例えば1番目のセルとします）
+            var taskCell = row.find('td').eq(1);
+            var currentText = taskCell.find('span').eq(0)[0].innerHTML;
+
+            // 既に編集モード（inputが存在する）なら何もしない
+            if (taskCell.find('input').length > 0) return;
+
+            // 3. セルの中身を input 要素に置き換える
+            taskCell.html('<input type="text" class="form-control" value="' + currentText + '">');
+
+            // 2. タスク内容が表示されているセルを取得（例えば1番目のセルとします）
+            var taskCell2 = row.find('td').eq(2);
+            var currentText = taskCell2.find('span').eq(0)[0].innerHTML;
+
+            // 既に編集モード（inputが存在する）なら何もしない
+            if (taskCell2.find('input').length > 0) return;
+
+            // 3. セルの中身を input 要素に置き換える
+            taskCell2.html('<input type="text" class="form-control" value="' + currentText + '">');
+
+
+            // 4. ボタンの見た目とテキストを「保存」に変更
+            $(editBtn).text('保存');
+            $(editBtn).removeClass('btn-outline-success').addClass('btn-success');
+
+            //// 5. 保存処理への切り替え（一度だけ実行されるクリックイベントを設定）
+            //$(editBtn).one('click', function (e) {
+            //    e.preventDefault();
+            //    saveTask(editBtn, taskCell,taskCell2);
+            //});
+        }
+
+        // 保存ボタン（元編集ボタン）を押した時の処理
+        function saveTask(saveBtn) {
+            var row = $(saveBtn).closest('tr');
+            var taskCell = row.find('td').eq(1);
+            var taskCell2 = row.find('td').eq(2);
+            var newValue = taskCell.find('input').val();
+
+            // セルの中身を新しいテキストに戻す
+            taskCell.html('<span class="todoContents">' + newValue + '</span>');
+            var newValue2 = taskCell2.find('input').val();
+
+            // セルの中身を新しいテキストに戻す
+            taskCell2.html('<span class="todoContents">' + newValue2 + '</span>');
+
+            // ボタンの見た目を「編集（緑枠）」に戻す
+            $(saveBtn).text('編集');
+            $(saveBtn).removeClass('btn-success').addClass('btn-outline-success');
+
+            // 再び編集できるようにイベントを再設定（または元々の呼び出し方に合わせる）
+        }
+
+        // 削除ボタンにタスクを消す機能を付与
+        function deleteTasks(deleteBtn, todoTableBody, defaultFirstRow) {
+            //デフォルト行を取得
+            var defaultFirstRow = $('#defaultFirstRow');
+            // tbody要素を取得
+            var todoTableBody = $('#todoTable tbody')[0];
+
+            var deleteRow = deleteBtn.closest('tr');
+            deleteRow.remove();
+            //TODOをすべて消した場合はデフォルト行を表示
+            if (todoTableBody.rows.length == 1) {
+                defaultFirstRow.show();
+            }
+        };
+
+        // 編集ボタンのクリックイベント設定
+        $(document).on('click', '#EditTodoItem', function (e) {
+            e.preventDefault();
+            // ボタンのテキストが「編集」なら編集モードへ、「保存」なら保存処理へ
+            if ($(this).text() === '編集') {
+                editTask(this);
+            } else {
+                saveTask(this);
+            }
+        });
+
+        //削除ボタンのクリックイベント設定
+        $(document).on('click', '#deleteTodoItem', function (e) {
+            e.preventDefault();
+            deleteTasks(this);
+        });
+
+
+        // TODOを追加して入力をリセットする共通関数
+        function submitTodo() {
+            var title = $('#todoTitle').val();
+            var day = $('#tododay').val();
+            if (title.trim() === "") return; // 空文字なら何もしない（ガード句）
+
+            addTasks(title,day);
+            $('#todoTitle').val(''); // 入力テキストを空にする
+        }
+
+        // ボタンクリック
+        $('#todoSubmit').click(function (e) {
+            e.preventDefault();
+            submitTodo();
+        });
+
+        // Enterキー
+        $('#todoTitle').keypress(function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                submitTodo();
+            }
+        });
+
+
+        //保存ボタンクリック処理
+        $('#saveTodo').click(function (e) {
+            // tbodyのtr要素(TODOアイテム行)を取得
+            var todoItems = $('#todoTable tbody tr');
+            //行がない場合は終了
+            if (todoItems === null) {
+                return false;
+            }
+            var postItemIndex = 0;
+            //行ごとのデータをPOSTメソッドで送れるように加工する
+            for (let i = 0; i < todoItems.length; i++) {
+                var todoValues = $(todoItems[i]).children("td");
+                //td要素(セル)が一つしかない行はデフォルト行なので、処理しない
+                if (todoValues.length === 1) {
+                    continue;
+                }
+                //タイトルのデータを作成
+                var postTitle = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Title`,
+                    value: $(todoValues[1]).find('span')[0].innerHTML
+                });
+                //説明のデータを作成
+                var postDescription = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Description`,
+                    value: $(todoValues[2]).find('span')[0].innerHTML
+                });
+
+                //データを追加する
+                todoItems[i].append(postTitle[0]);
+                todoItems[i].append(postDescription[0]);
+                postItemIndex++;
+            }
+
+
+        });
+        //#endregion
+
+    </script>
+
+    <style>
+        .dashboard-link {
+            text-decoration: underline;
+            padding-left: calc(var(--bs-gutter-x)* 0.5);
+            font-size: 1.5rem;
+            width: auto;
+        }
+
+        .task_submit {
+            height: 2rem;
+        }
+
+        #todoListTable {
+            width: 100%;
+            height: 400px;
+            border-radius: 1rem;
+            margin-top: 2rem;
+        }
+
+        .table-bordered th:first-child {
+            width: 10%;
+            min-width: 80px;
+        }
+
+        .table-bordered td:first-child {
+            width: 10%;
+            min-width: 80px;
+        }
+
+        .todoContents {
+            vertical-align: inherit;
+        }
+
+
+        /* クリック時に色を濃くする */
+        input:active {
+            background: #5a5a5a;
+        }
+    </style>
+}

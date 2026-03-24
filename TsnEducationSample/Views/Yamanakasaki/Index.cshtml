@@ -1,0 +1,299 @@
+﻿@model List<TsnEducationSample.Models.TodoItem>
+@{
+    ViewBag.Title = "サンプル";
+}
+<main aria-labelledby="title">
+    <div class="row">
+        <div class="d-flex flex-row justify-content-between mb-3">
+            <h3>MyTodo</h3>
+            @Html.ActionLink("サンプル一覧画面へ戻る", "Sample", "Home", new { area = "" }, new { @class = "dashboard-link" })
+        </div>
+        <form>
+            <div class="d-flex flex-row gap-2 mb-2">
+                <input class="form-control" type="text" id="todoTitle" placeholder="タイトルを入力" />
+                <input class="form-control" type="text" id="todoDescription" placeholder="説明を入力" />
+                <input class="form-control" type="number" id="todoDifficult" placeholder="難易度を入力" />
+                <input class="form-control" type="number" id="todoPriority" placeholder="優先順位を入力" />
+                <input class="form-control" type="time" id="todoTime" placeholder="期限を入力" />
+            </div>
+            <button class="btn btn-primary " type="button" id="todoSubmit">TODO追加</button>
+        </form>
+        <div id="todoListTable">
+            @using (Html.BeginForm("SaveTodoItems", "Todo", FormMethod.Post, new { @id = "LayoutForm" }))
+            {
+                <div style="display:flex; flex-direction:row; justify-content:space-between;">
+                    <h4>TODOリスト一覧</h4>
+                    <button class=" btn btn-primary mb-2" type="submit" id="saveTodo">保存</button>
+                </div>
+                <table class="table table-bordered" id="todoTable">
+                    <thead>
+                        <tr>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">操作</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">タイトル</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">説明</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">難易度</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">優先順位</font></font></th>
+                            <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">期限</font></font></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            @{string style = string.Empty;
+                                //TODOアイテムを保存している場合はデフォルト行を非表示
+                                if (Model.Any())
+                                {
+                                    style = "display:none;";
+                                }
+                                <td colspan="6" id="defaultFirstRow" style="text-align: center; @style">表示する項目がありません。</td>
+                            }
+                        </tr>
+                        <!--データ表示-->
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    <button class="btn btn-outline-danger" type="button" id="deleteTodoItem">削除</button>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Title</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Description</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Difficult</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Priority</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Time</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        </div>
+    </div>
+</main>
+@section scripts{
+    <script type="text/javascript">
+
+        //#region TODOリストの処理
+
+        // 追加ボタンを作成
+        function addTasks(task) {
+            //デフォルト行を取得
+            var defaultFirstRow = $('#defaultFirstRow');
+            //デフォルト表示を非表示にする
+            defaultFirstRow.hide();
+            // tbody要素を取得
+            var todoTableBody = $('#todoTable tbody')[0];
+            // tbody 要素を取得
+            var $tbody = $('#todoTable tbody');
+
+            // tr を作成
+            var $tr = $('<tr></tr>');
+
+            // td を作成して tr に追加
+            var $btnCell = $('<td></td>');
+            var $titleCell = $('<td></td>');
+            var $descriptionCell = $('<td></td>');
+            var $difficultCell = $('<td></td>');
+            var $priorityCell = $('<td></td>');
+            var $timeCell = $('<td></td>');
+
+            // 削除ボタンの列
+            var $deleteBtn = $('<button></button>', {
+                id: 'deleteTodoItem',
+                class: 'btn btn-outline-danger',
+                type: 'button',
+                text: '削除'
+            });
+
+       
+
+            // クラス追加
+            $btnCell.addClass('text-center');
+            $btnCell.append($deleteBtn);
+
+            //タイトル列
+            var titleSpan = $('<span></span>');
+            var title = $('#todoTitle');
+            titleSpan.addClass("todoContents");
+            titleSpan.text(title.val());
+            $titleCell.append(titleSpan);
+
+
+            //詳細列
+            var descriptionSpan = $('<span></span>');
+            var description = $('#todoDescription');
+            descriptionSpan.addClass("todoContents");
+            descriptionSpan.text(description.val());
+            $descriptionCell.append(descriptionSpan);
+
+            //難易度列
+            var difficultSpan = $('<span></span>');
+            var difficult = $('#todoDifficult');
+            difficultSpan.addClass("todoContents");
+            difficultSpan.text(difficult.val());
+            $difficultCell.append(difficultSpan);
+
+            //優先順位列
+            var prioritySpan = $('<span></span>');
+            var priority = $('#todoPriority');
+            prioritySpan.addClass("todoContents");
+            prioritySpan.text(priority.val());
+            $priorityCell.append(prioritySpan);
+
+            //期限列
+            var timeSpan = $('<span></span>');
+            var time = $('#todoTime');
+            timeSpan.addClass("todoContents");
+            timeSpan.text(time.val());
+            $timeCell.append(timeSpan);
+
+            // tr に td を追加
+            $tr.append($btnCell, $titleCell, $descriptionCell, $difficultCell, $priorityCell, $timeCell);
+
+            // tbody に tr を追加
+            $tbody.append($tr);
+          
+        };
+
+        // 削除ボタンにタスクを消す機能を付与
+        function deleteTasks(deleteBtn, todoTableBody, defaultFirstRow) {
+            //デフォルト行を取得
+            var defaultFirstRow = $('#defaultFirstRow');
+            // tbody要素を取得
+            var todoTableBody = $('#todoTable tbody')[0];
+
+            var deleteRow = deleteBtn.closest('tr');
+            deleteRow.remove();
+            //TODOをすべて消した場合はデフォルト行を表示
+            if (todoTableBody.rows.length == 1) {
+                defaultFirstRow.show();
+            }
+        };
+
+        //削除ボタンのクリックイベント設定
+        $(document).on('click', '#deleteTodoItem', function (e) {
+            e.preventDefault();
+            deleteTasks(this);
+        });
+
+        //TODO追加ボタン押下処理
+        $('#todoSubmit').click(function (e) {
+            //post処理防止
+            e.preventDefault();
+            //TODO追加処理
+            addTasks($('#todoTitle').val());
+            //入力テキストを空にする
+            $('#todoTitle').val('');
+        });
+
+
+        //保存ボタンクリック処理
+        $('#saveTodo').click(function (e) {
+            // tbodyのtr要素(TODOアイテム行)を取得
+            var todoItems = $('#todoTable tbody tr');
+            //行がない場合は終了
+            if (todoItems === null) {
+                return false;
+            }
+            var postItemIndex = 0;
+            //行ごとのデータをPOSTメソッドで送れるように加工する
+            for (let i = 0; i < todoItems.length; i++) {
+                var todoValues = $(todoItems[i]).children("td");
+                //td要素(セル)が一つしかない行はデフォルト行なので、処理しない
+                if (todoValues.length === 1) {
+                    continue;
+                }
+                //タイトルのデータを作成
+                var postTitle = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Title`,
+                    value: $(todoValues[1]).find('span')[0].innerHTML
+                });
+                //説明のデータを作成
+                var postDescription = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Description`,
+                    value: $(todoValues[2]).find('span')[0].innerHTML
+                });
+                //難易度のデータを作成
+                var postDifficult = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Difficult`,
+                    value: $(todoValues[2]).find('span')[0].innerHTML
+                });
+                //優先順位のデータを作成
+                var postPriority = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Priority`,
+                    value: $(todoValues[2]).find('span')[0].innerHTML
+                });
+                //期限のデータを作成
+                var postTime = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Time`,
+                    value: $(todoValues[2]).find('span')[0].innerHTML
+                });
+
+                //データを追加する
+                todoItems[i].append(postTitle[0]);
+                todoItems[i].append(postDescription[0]);
+                todoItems[i].append(postDifficult[0]);
+                todoItems[i].append(postPriority[0]);
+                todoItems[i].append(postTime[0]);
+                postItemIndex++;
+            }
+
+
+        });
+        //#endregion
+
+    </script>
+
+    <style>
+        .dashboard-link {
+            text-decoration: underline;
+            padding-left: calc(var(--bs-gutter-x)* 0.5);
+            font-size: 1.5rem;
+            width: auto;
+        }
+
+        .task_submit {
+            height: 2rem;
+        }
+
+        #todoListTable {
+            width: 100%;
+            height: 400px;
+            border-radius: 1rem;
+            margin-top: 2rem;
+        }
+
+        .table-bordered th:first-child {
+            width: 10%;
+            min-width: 80px;
+        }
+
+        .table-bordered td:first-child {
+            width: 10%;
+            min-width: 80px;
+        }
+
+        .todoContents {
+            vertical-align: inherit;
+        }
+
+
+        /* クリック時に色を濃くする */
+        input:active {
+            background: #5a5a5a;
+        }
+    </style>
+}

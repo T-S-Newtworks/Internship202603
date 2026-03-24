@@ -121,8 +121,13 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\DashBoardController.cs" />
+    <Compile Include="Controllers\HinataController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\KurosawaController.cs" />
+    <Compile Include="Controllers\NakanoController.cs" />
+    <Compile Include="Controllers\omorikohaController.cs" />
     <Compile Include="Controllers\TodoController.cs" />
+    <Compile Include="Controllers\YamanakasakiController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -194,6 +199,11 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Todo\Index.cshtml" />
     <Content Include="Views\DashBoard\Index.cshtml" />
+    <Content Include="Views\Hinata\Index.cshtml" />
+    <Content Include="Views\Kurosawa\Index.cshtml" />
+    <Content Include="Views\Nakano\index.cshtml" />
+    <Content Include="Views\omorikoha\Index.cshtml" />
+    <Content Include="Views\Yamanakasaki\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
