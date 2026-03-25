@@ -12,11 +12,20 @@
             <div class="d-flex flex-row gap-2">
                 <input class="form-control" type="text" id="todoTitle" placeholder="タイトルを入力" />
                 <input class="form-control" type="text" id="todoDescription" placeholder="説明を入力" />
+                <select id="tagSelect">
+                    <option value="" id="tagSelect" ,class="hidden">タグを選択</option>
+                    <option value="仕事">仕事</option>
+                    <option value="買い物">買い物</option>
+                    <option value="重要">重要</option>
+                    <option value="趣味">趣味</option>
+                    <option value="勉強">勉強</option>
+                </select>
+
                 <button class="btn btn-primary " type="button" id="todoSubmit">TODO追加</button>
             </div>
         </form>
         <div id="todoListTable">
-            @using (Html.BeginForm("SaveTodoItems", "Todo", FormMethod.Post, new { @id = "LayoutForm" }))
+            @using (Html.BeginForm("SaveTodoItems", "Hinata", FormMethod.Post, new { @id = "LayoutForm" }))
             {
                 <div style="display:flex; flex-direction:row; justify-content:space-between;">
                     <h4>TODOリスト一覧</h4>
@@ -50,10 +59,14 @@
                         {
                             <tr>
                                 <td class="text-center">
+                                    <button class="btn btn-primary" type="button" id="editTodoItem">編集</button>
                                     <button class="btn btn-outline-danger" type="button" id="deleteTodoItem">削除</button>
                                 </td>
                                 <td>
                                     <span class="todoContents">@item.Title</span>
+                                </td>
+                                <td>
+                                    <span class="todoContents">@item.Tab</span>
                                 </td>
                                 <td>
                                     <span class="todoComments">@item.Description</span>
@@ -73,7 +86,7 @@
         //#region TODOリストの処理
 
         // 追加ボタンを作成
-        function addTasks(task) {
+        function addTasks(task, description, select) {
             //デフォルト行を取得
             var defaultFirstRow = $('#defaultFirstRow');
             //デフォルト表示を非表示にする
@@ -87,6 +100,14 @@
             var titleCellElem = trElem.insertCell(1);
             var tabCellElem = trElem.insertCell(2);
             var descriptionCellElem = trElem.insertCell(3);
+            //編集ボタンの列
+            var editBtn = document.createElement('button');
+            editBtn.id = "editTodoItem";
+            editBtn.className = "btn btn-primary";
+            editBtn.type = "button";
+            editBtn.innerHTML = "編集";
+            btnCellElem.appendChild(editBtn);
+            btnCellElem.classList.add("text-center");
             //削除ボタンの列
             var deleteBtn = document.createElement('button');
             deleteBtn.id = "deleteTodoItem";
@@ -101,15 +122,16 @@
             titleCell.innerHTML = task;
             titleCellElem.appendChild(titleCell);
             //タグ列
-            var titleCell = document.createElement('span');
-            titleCell.className = "todoContents";
-            titleCell.innerHTML = task;
-            titleCellElem.appendChild(titleCell);
+            var tabCell = document.createElement('span');
+            tabCell.className = "todoContents";
+            tabCell.classList.add("tag-" + select);
+            tabCell.innerHTML = select;
+            tabCellElem.appendChild(tabCell);
             //説明列
-            var descriptionCell = titleCell.cloneNode(false);
-            descriptionCell.innerHTML = task + "の説明です。";
+            var descriptionCell = document.createElement('span');
+            descriptionCell.className = "todoContents";
+            descriptionCell.innerHTML = description;
             descriptionCellElem.appendChild(descriptionCell);
-            btnCellElem.classList.add("text-center");
         };
 
         // 削除ボタンにタスクを消す機能を付与
@@ -133,15 +155,71 @@
             deleteTasks(this);
         });
 
+        //編集ボタンのクリックイベント設定
+        $(document).on('click', '#editTodoItem', function (e) {
+            e.preventDefault();
+
+            let buttext = $(this).text();
+            if (buttext == "編集") {
+                editTasks(this);
+            }
+            else {
+                saveTasks(this);
+            }
+        });
+
+        function editTasks(editBtn) {
+            //クリックしたボタンの行を取得
+            var row = $(editBtn).closest('tr');
+            //タイトル列、説明列を取得
+            var cells = [row.find('td').eq(1), row.find('td').eq(3)];
+            //上で取得したセルのspanタグをinputタグに置き換え
+            cells.forEach(cell => {
+                var currentText = cell.find('span').text();
+                if (cell.find('input').length === 0) {
+                    cell.html('<input type="text" class="form-control form-control-sm" value="' + currentText + '">');
+                }
+            });
+            //タグ列を取得
+            let cell = row.find('td').eq(2);
+            var currentText = cell.find('span').text();
+            cell.html('<select id="tagSelect">< option value = "" id = "tagSelect", class= "hidden" > タグを選択</option ><option value="仕事">仕事</option><option value="買い物">買い物</option><option value="重要">重要</option><option value="趣味">趣味</option><option value="勉強">勉強</option></select > ');
+
+            //let sellectvall = row.find('td').eq(2).find('select').val();
+            row.find('td').eq(2).find('select').val(currentText);
+            $(editBtn).text('保存').removeClass('btn-primary').addClass('btn-success');
+        }
+
+        function saveTasks(saveBtn) {
+            //クリックしたボタンの行を取得
+            var row = $(saveBtn).closest('tr');
+            //タイトル列、タグ列、説明列を取得
+            var cells = [row.find('td').eq(1), row.find('td').eq(3)];
+            //上で取得したセルのspanタグをinputタグに置き換え
+            cells.forEach(cell => {
+                var currentText = cell.find('input').val();
+                if (cell.find('span').length === 0) {
+                    cell.html('<span class="todoContents">' + currentText + '</span>');
+                }
+            });
+            let cell = row.find('td').eq(2);
+            //$('#tagSelect').val()
+            let sellectvall = row.find('td').eq(2).find('select').val();
+            cell.html('<span class="todoContents">' + sellectvall + '</span>');
+            cell.find('span').addClass('tag-' + sellectvall);
+            $(saveBtn).text('編集').removeClass('btn-success').addClass('btn-primary');
+        }
+
         //TODO追加ボタン押下処理
         $('#todoSubmit').click(function (e) {
             //post処理防止
             e.preventDefault();
             //TODO追加処理
-            addTasks($('#todoTitle').val());
+            addTasks($('#todoTitle').val(), $('#todoDescription').val(), $('#tagSelect').val());
             //入力テキストを空にする
             $('#todoTitle').val('');
             $('#todoDescription').val('');
+            $('#tagSelect').val('');
         });
 
 
@@ -191,12 +269,45 @@
         });
         //#endregion
 
+        //Enterキーで追加する
         document.getElementById('todoTitle').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 $('#todoSubmit').trigger('click');
             }
         });
+
+        //const select = document.getElementById("tagSelect");
+        //const addBtn = document.getElementById("todoSubmit");
+        //const list = document.getElementById("tagList");
+
+        //addBtn.addEventListener("click", () => {
+        //    const option = select.selectedOptions[0];
+        //    const color = option.dataset.color;
+        //    const text = option.textContent;
+
+        //    const li = document.createElement("li");
+        //    li.innerHTML = `<span class="tag" style="background:${color};">${text}</span>`;
+        //    list.appendChild(li);
+        //});
+
+        //var tagText = $(todoValues[2]).find('span')[0].innerHTML;
+
+        //// タグ名をクラス名に変換（例：仕事 → tag-仕事）
+        //var className = "tag-" + tagText;
+
+        //// 表示用タグ
+        //var tagSpan = $('<span>')
+        //    .addClass('tag-item')
+        //    .addClass(className)
+        //    .text(tagText);
+
+        //// hidden input（送信用）
+        //var postTab = $('<input>').attr({
+        //    type: 'hidden',
+        //    name: `todoItems[${postItemIndex}].Tab`,
+        //    value: tagText
+        //});
 
 
     </script>
@@ -239,24 +350,53 @@
             max-height: 300px; /* 6行分の高さ */
             overflow-y: auto;
         }
-        
-        #todoTable thead,
-        #todoTable tbody tr {
-            display: table;
-            width: 100%;
-            table-layout: fixed; /* 列幅を揃える */
 
+            #todoTable thead,
+            #todoTable tbody tr {
+                display: table;
+                width: 100%;
+                table-layout: fixed; /* 列幅を揃える */
+            }
+
+        #todoTable th:nth-child(3),
+        #todoTable td:nth-child(3) {
+            width: 80px; /* タグ欄を小さく */
         }
 
-        .tag {
-            padding: 4px 8px;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 12px;
+        #todoTable th:nth-child(4),
+        #todoTable td:nth-child(4) {
+            width: auto; /* 説明欄を広く */
         }
-        .tag.important { background-color: #ff6b6b;}
-        .tag.progress { background-color: #4dabf7;}
-        .tag.done { background-color: #51cf66;}
+
+        /* 共通スタイル */
+        .tag-item {
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+
+        /* タグ名ごとの固定色 */
+        .tag-仕事 {
+            background-color: #32cd32;
+        }
+
+        .tag-買い物 {
+            background-color: #ffd700;
+        }
+
+        .tag-重要 {
+            background-color: #dc143c;
+        }
+
+        .tag-勉強 {
+            background-color: #4dabf7;
+        }
+
+        .tag-趣味 {
+            background-color: #ffb6c1;
+        }
 
         /* クリック時に色を濃くする */
         input:active {

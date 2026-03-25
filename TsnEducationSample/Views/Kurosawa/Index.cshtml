@@ -18,12 +18,17 @@
             <div class="d-flex flex-row gap-2">
                 <input class="form-control" type="text" id="todoTitle" placeholder="タイトルを入力" />
                 <input class="form-control" type="text" id="todosetumei" placeholder="説明を入力" />
-                <input class="form-control" type="text" id="todoyusendo" placeholder="優先度(1・2・3)を入力" />
+                <select class="form-control" id="todoyusendo">
+                    <option value="">優先度を選択</option>
+                    <option value="1">1（高）</option>
+                    <option value="2">2（中）</option>
+                    <option value="3">3（低）</option>
+                </select>
                 <button class="btn btn-primary " type="button" id="todoSubmit">TODO追加</button>
             </div>
         </form>
         <div id="todoListTable">
-            @using (Html.BeginForm("SaveTodoItems", "Todo", FormMethod.Post, new { @id = "LayoutForm" }))
+            @using (Html.BeginForm("SaveTodoItems", "Kurosawa", FormMethod.Post, new { @id = "LayoutForm" }))
             {
                 <div style="display:flex; flex-direction:row; justify-content:space-between;">
                     <h4>TODOリスト一覧</h4>
@@ -46,7 +51,7 @@
                                 {
                                     style = "display:none;";
                                 }
-                                <td colspan="3" id="defaultFirstRow" style="text-align: center; @style">表示する項目がありません。</td>
+                                <td colspan="4" id="defaultFirstRow" style="text-align: center; @style">表示する項目がありません。</td>
                             }
                         </tr>
                         <!--データ表示-->
@@ -60,7 +65,10 @@
                                     <span class="todoContents">@item.Title</span>
                                 </td>
                                 <td>
-                                    <span class="todoContents">@item.Description</span>
+                                    <span class="todosetumei">@item.Description</span>
+                                </td>
+                                <td>
+                                    <span class="todoyusen">@item.Yusendo</span>
                                 </td>
                             </tr>
                         }
@@ -77,13 +85,14 @@
         //#region TODOリストの処理
 
         // 追加ボタンを作成
-        function addTasks(task,setumei,yusendo) {
+        function addTasks(task, setumei, yusendo) {
             //デフォルト行を取得
             var defaultFirstRow = $('#defaultFirstRow');
             //デフォルト表示を非表示にする
             defaultFirstRow.hide();
             // tbody要素を取得
             var todoTableBody = $('#todoTable tbody')[0];
+
             // tbody要素に最下行を追加
             var trElem = todoTableBody.insertRow(-1);
             // td要素(セル要素)を追加
@@ -126,8 +135,8 @@
 
             // 優先度（4列目）で昇順ソート
             rows.sort(function (a, b) {
-                var aPri = parseInt($(a).children('td').eq(3).find('span').text());
-                var bPri = parseInt($(b).children('td').eq(3).find('span').text());
+                var aPri = parseInt($(a).find('.todoyusen').text()) || 0;
+                var bPri = parseInt($(b).find('.todoyusen').text()) || 0;
                 return aPri - bPri;
             });
 
@@ -200,9 +209,17 @@
                     value: $(todoValues[2]).find('span')[0].innerHTML
                 });
 
+                //優先度のデータを作成
+                var postYusendo = $('<input>').attr({
+                    type: 'hidden',
+                    name: `todoItems[${postItemIndex}].Yusendo`,
+                    value: $(todoValues[3]).find('span')[0].innerHTML
+                })
+
                 //データを追加する
                 todoItems[i].append(postTitle[0]);
                 todoItems[i].append(postDescription[0]);
+                todoItems[i].append(postYusendo[0]);
                 postItemIndex++;
             }
 
@@ -210,15 +227,71 @@
         });
         //#endregion
 
+
+
+
+        // ダブルクリックで編集モードにする
+        $(document).on('dblclick', '.todoContents, .todosetumei, .todoyusen', function () {
+            var span = $(this);
+            var text = span.text();
+
+            // 優先度（todoyusen）だけ select にする
+            if (span.hasClass('todoyusen')) {
+                var select = $('<select class="form-control editSelect">');
+                select.append('<option value="1">1（高）</option>');
+                select.append('<option value="2">2（中）</option>');
+                select.append('<option value="3">3（低）</option>');
+                select.val(text); // 現在の値をセット
+                span.replaceWith(select);
+                select.focus();
+                return;
+            }
+
+            // タイトル・説明は input にする
+            var input = $('<input type="text" class="form-control editInput">');
+            input.val(text);
+            span.replaceWith(input);
+            input.focus();
+        });
+
+
+
+        // 編集終了（input）
+        $(document).on('blur', '.editInput', function () {
+            finishEdit($(this));
+        });
+        $(document).on('keypress', '.editInput', function (e) {
+            if (e.which === 13) finishEdit($(this));
+        });
+
+        // 編集終了（select）
+        $(document).on('change blur', '.editSelect', function () {
+            finishEditSelect($(this));
+        });
+
+        // input → span
+        function finishEdit(input) {
+            var newText = input.val();
+            var span = $('<span class="todoContents">').text(newText);
+
+            if (input.parent().find('.todosetumei').length) {
+                span = $('<span class="todosetumei">').text(newText);
+            }
+            input.replaceWith(span);
+        }
+
+        // select → span
+        function finishEditSelect(select) {
+            var newText = select.val();
+            var span = $('<span class="todoyusen">').text(newText);
+            select.replaceWith(span);
+            sortByPriority();
+        }
+
     </script>
 
     <style>
-        .dashboard-link {
-            text-decoration: underline;
-            padding-left: calc(var(--bs-gutter-x)* 0.5);
-            font-size: 1.5rem;
-            width: auto;
-        }
+
 
         .task_submit {
             height: 2rem;
@@ -229,6 +302,8 @@
             height: 400px;
             border-radius: 1rem;
             margin-top: 2rem;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .table-bordered th:first-child {
@@ -245,10 +320,50 @@
             vertical-align: inherit;
         }
 
+        #todoSubmit {
+            background-color: #EEB316;
+            border-color: #EEB316;
+        }
+
+            #todoSubmit:hover {
+                background-color: #D39F15;
+                border-color: #D39F15;
+            }
+
+        #saveTodo {
+            background-color: #EEB316;
+            border-color: #EEB316;
+            color: #fff; /* 文字色は濃いめにすると見やすい */
+        }
+
+            #saveTodo:hover {
+                background-color: #D39F15;
+                border-color: #D39F15;
+                color: #fff
+            }
+
+        .dashboard-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #EEB316;
+            border: 1px solid #EEB316;
+            color: #ffffff;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+            .dashboard-link:hover {
+                background-color: #D39F15;
+                border-color: #D39F15;
+                color: #ffffff;
+            }
+
+
 
         /* クリック時に色を濃くする */
-        input:active {
-            background: #5a5a5a;
+        /*input:active {
+            background: #5a5a5a;*/
         }
     </style>
 }

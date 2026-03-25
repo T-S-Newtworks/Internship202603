@@ -43,5 +43,13 @@ namespace TsnEducationSample.Models
         public string day { get; set; }
         #endregion
 
+        #region kato追加分
+        public string Tab { get; set; }
+        #endregion
+
+        #region kurosawa追加分
+        public string Yusendo { get; set; }
+        #endregion
+
     }
 }

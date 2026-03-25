@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
@@ -20,7 +21,9 @@ namespace TsnEducationSample.Controllers
             //TODOリストの読み込み
             string filePath = @"C:\temp\TsnEducationSample\todoItem.csv";
 
+            //TodoItemリストの作成
             List<TodoItem> todoItems = new List<TodoItem>();
+
             //ファイルを読み込めなかった場合は空のリストを返す
             if (System.IO.File.Exists(filePath))
             {
@@ -32,7 +35,7 @@ namespace TsnEducationSample.Controllers
                         //csvファイルなのでカンマ区切りでデータを抽出
                         string[] rowValues = readFile.ReadLine().Split(',');
                         //データ形式が正しくない場合は扱わない
-                        if (rowValues.Length != 2)
+                        if (rowValues.Length != 5)
                         {
                             continue;
                         }
@@ -76,6 +79,14 @@ namespace TsnEducationSample.Controllers
                     StringBuilder sb = new StringBuilder();
                     foreach (var item in todoItems)
                     {
+                        bool hasNullOrWhiteSpace = string.IsNullOrWhiteSpace(item.Title) ||
+                            string.IsNullOrWhiteSpace(item.Description) ||
+                            string.IsNullOrWhiteSpace(item.Difficult) ||
+                            string.IsNullOrWhiteSpace(item.Priority) ||
+                            string.IsNullOrWhiteSpace(item.Time);
+
+                        if (hasNullOrWhiteSpace) continue;
+
                         sb.AppendLine($"{item.Title},{item.Description},{item.Difficult},{item.Priority},{item.Time}");
                     }
 

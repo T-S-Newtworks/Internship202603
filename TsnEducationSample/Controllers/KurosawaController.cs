@@ -32,7 +32,7 @@ namespace TsnEducationSample.Controllers
                         //csvファイルなのでカンマ区切りでデータを抽出
                         string[] rowValues = readFile.ReadLine().Split(',');
                         //データ形式が正しくない場合は扱わない
-                        if (rowValues.Length != 2)
+                        if (rowValues.Length != 3)
                         {
                             continue;
                         }
@@ -40,7 +40,8 @@ namespace TsnEducationSample.Controllers
                         todoItems.Add(new TodoItem()
                         {
                             Title = rowValues[0],
-                            Description = rowValues[1]
+                            Description = rowValues[1],
+                            Yusendo = rowValues[2]
                         });
                     }
                 }
@@ -73,7 +74,7 @@ namespace TsnEducationSample.Controllers
                     StringBuilder sb = new StringBuilder();
                     foreach (var item in todoItems)
                     {
-                        sb.AppendLine($"{item.Title},{item.Description}");
+                        sb.AppendLine($"{item.Title},{item.Description},{item.Yusendo}");
                     }
 
                     overWriteFile.Write(sb.ToString());

@@ -19,11 +19,16 @@
             <button class="btn btn-primary " type="button" id="todoSubmit">TODO追加</button>
         </form>
         <div id="todoListTable">
-            @using (Html.BeginForm("SaveTodoItems", "Todo", FormMethod.Post, new { @id = "LayoutForm" }))
+            @using (Html.BeginForm("SaveTodoItems", "Yamanakasaki", FormMethod.Post, new { @id = "LayoutForm" }))
             {
                 <div style="display:flex; flex-direction:row; justify-content:space-between;">
                     <h4>TODOリスト一覧</h4>
-                    <button class=" btn btn-primary mb-2" type="submit" id="saveTodo">保存</button>
+                    <div>
+                        <button class="btn btn-secondary mb-2" type="button" id="editTodo">編集</button>
+                        <button class="btn btn-secondary mb-2" type="button" id="finishTodo">編集完了</button>
+                        <button class="btn btn-secondary mb-2" type="button" id="deleteAllTodoItems">一括削除</button>
+                        <button class=" btn btn-primary mb-2" type="submit" id="saveTodo">保存</button>
+                    </div>
                 </div>
                 <table class="table table-bordered" id="todoTable">
                     <thead>
@@ -36,6 +41,7 @@
                             <th scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">期限</font></font></th>
                         </tr>
                     </thead>
+
                     <tbody>
                         <tr>
                             @{string style = string.Empty;
@@ -71,6 +77,7 @@
                                 </td>
                             </tr>
                         }
+
                     </tbody>
                 </table>
             }
@@ -82,6 +89,27 @@
     <script type="text/javascript">
 
         //#region TODOリストの処理
+
+        $(document).on('click', '#finishTodo', function () {
+
+            // tbody 内の input を対象にする
+            $('#todoTable tbody').find('input').each(function () {
+
+                var value = $(this).val(); // 入力された値
+
+                var $span = $('<span>', {
+                    class: 'todoContents',
+                    text: value
+                });
+
+                $(this).replaceWith($span);
+            });
+
+            // ボタンの切り替え
+            $('#finishTodo').hide();
+            $('#editTodo').show();
+            $('#saveTodo').attr('disabled', false);
+        });
 
         // 追加ボタンを作成
         function addTasks(task) {
@@ -113,7 +141,7 @@
                 text: '削除'
             });
 
-       
+
 
             // クラス追加
             $btnCell.addClass('text-center');
@@ -159,9 +187,56 @@
             $tr.append($btnCell, $titleCell, $descriptionCell, $difficultCell, $priorityCell, $timeCell);
 
             // tbody に tr を追加
-            $tbody.append($tr);
-          
+            // 優先順位の値（数値化）
+            var newPriority = parseInt(priority.val(), 10);
+
+            // tbody 内の既存行を取得
+            var $rows = $tbody.find('tr').not(':has(#defaultFirstRow)');
+
+            var inserted = false;
+
+            // 既存行の中で挿入位置を探す
+            $rows.each(function () {
+                var existingPriority = parseInt($(this).find('td').eq(4).text(), 10);
+
+                if (newPriority < existingPriority) {
+                    $(this).before($tr);
+                    inserted = true;
+                    return false; // each を抜ける
+                }
+            });
+
+            // 挿入位置が見つからなければ最後に追加
+            if (!inserted) {
+                $tbody.append($tr);
+            }
+
+
         };
+
+        //編集ボタンの処理
+        $(document).on('click', '#editTodo', function () {
+
+            // tbody 内の対象行を取得
+            var $tr = $('#todoTable tbody').find('tr');
+
+            // ボタン以外のセルにある span.todoContents を input に変換
+            $tr.find('span.todoContents').each(function () {
+                var text = $(this).text();
+
+                var $input = $('<input>', {
+                    type: 'text',
+                    class: 'form-control',
+                    value: text
+                });
+
+                $(this).replaceWith($input);
+            });
+            // ボタンの切り替え
+            $('#finishTodo').show();
+            $('#editTodo').hide();
+            $('#saveTodo').attr('disabled', true);
+        });
 
         // 削除ボタンにタスクを消す機能を付与
         function deleteTasks(deleteBtn, todoTableBody, defaultFirstRow) {
@@ -184,6 +259,26 @@
             deleteTasks(this);
         });
 
+        // 削除ボタンにタスクを消す機能を付与
+        function deleteAllTasks(deleteBtn, todoTableBody, defaultFirstRow) {
+            //デフォルト行を取得
+            var defaultFirstRow = $('#defaultFirstRow');
+            // tbody要素を取得
+            var todoTableBody = $('#todoTable tbody');
+
+            var deleteRows = todoTableBody.find('tr').not(':has(#defaultFirstRow)');
+            deleteRows.remove();
+            //TODOをすべて消した場合はデフォルト行を表示
+
+            defaultFirstRow.show();
+        };
+
+        //削除ボタンのクリックイベント設定
+        $(document).on('click', '#deleteAllTodoItems', function (e) {
+            e.preventDefault();
+            deleteAllTasks(this);
+        });
+
         //TODO追加ボタン押下処理
         $('#todoSubmit').click(function (e) {
             //post処理防止
@@ -192,6 +287,10 @@
             addTasks($('#todoTitle').val());
             //入力テキストを空にする
             $('#todoTitle').val('');
+            $('#todoDescription').val('');
+            $('#todoDifficult').val('');
+            $('#todoPriority').val('');
+            $('#todoTime').val('');
         });
 
 
@@ -227,19 +326,19 @@
                 var postDifficult = $('<input>').attr({
                     type: 'hidden',
                     name: `todoItems[${postItemIndex}].Difficult`,
-                    value: $(todoValues[2]).find('span')[0].innerHTML
+                    value: $(todoValues[3]).find('span')[0].innerHTML
                 });
                 //優先順位のデータを作成
                 var postPriority = $('<input>').attr({
                     type: 'hidden',
                     name: `todoItems[${postItemIndex}].Priority`,
-                    value: $(todoValues[2]).find('span')[0].innerHTML
+                    value: $(todoValues[4]).find('span')[0].innerHTML
                 });
                 //期限のデータを作成
                 var postTime = $('<input>').attr({
                     type: 'hidden',
                     name: `todoItems[${postItemIndex}].Time`,
-                    value: $(todoValues[2]).find('span')[0].innerHTML
+                    value: $(todoValues[5]).find('span')[0].innerHTML
                 });
 
                 //データを追加する
@@ -258,6 +357,10 @@
     </script>
 
     <style>
+        #finishTodo {
+            display: none;
+        }
+
         .dashboard-link {
             text-decoration: underline;
             padding-left: calc(var(--bs-gutter-x)* 0.5);
@@ -273,12 +376,31 @@
             width: 100%;
             height: 400px;
             border-radius: 1rem;
+            background-color: whitesmoke;
             margin-top: 2rem;
         }
+
+        table {
+            border: 2px solid black; /*外枠の線 */
+            border-collapse: collapse; /*線を重ねて1本にする */
+        }
+
+            table td, table th {
+                border: 2px solid black !important;
+            }
+
+
+
 
         .table-bordered th:first-child {
             width: 10%;
             min-width: 80px;
+        }
+
+        #deleteTodoItem {
+            background-color: #b41e1e; /* 濃い赤 */
+            color: white;
+            border: 1px solid #890808; /* さらに濃い赤 */
         }
 
         .table-bordered td:first-child {

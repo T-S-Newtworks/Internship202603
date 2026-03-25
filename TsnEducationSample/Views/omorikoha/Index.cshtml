@@ -40,7 +40,7 @@
             <td><input type="button" class="calcBtn" value="3" onclick="get_calc(this)"></td>
             <td><input type="button" value="(" class="calcBtn operator" onclick="get_calc(this)"></td>
             <td><input type="button" value=")" class="calcBtn operator" onclick="get_calc(this)"></td>
-            <td><input type="button" value="式" class="calcBtn equal" onclick="turn()"></td>
+            <td><input type="button" value="式" class="calcBtn equal" onclick="showFormula()"></td>
         </tr>
 
         <!-- 上から4段目（0/C/=/+) -->
@@ -58,123 +58,165 @@
 @*</div>*@
 <script type="text/javascript">
 
-    //#region 銀行検索
-    //送信ボタンがクリックされたときの処理
-    // 銀行名、支店名をAPIで取得
-    $("#bankSearch").on("click", function () {
-        UpdateBankAndBranchInfo($("#input-bankCode").val(), $("#input-branchCode").val());
-    });
+    ////#region 銀行検索
+    ////送信ボタンがクリックされたときの処理
+    //// 銀行名、支店名をAPIで取得
+    //$("#bankSearch").on("click", function () {
+    //    UpdateBankAndBranchInfo($("#input-bankCode").val(), $("#input-branchCode").val());
+    //});
 
-    /* APIのURL */
-    const BankcodeBaseUrl = "https://apis.bankcode-jp.com/v3/";
+    ///* APIのURL */
+    //const BankcodeBaseUrl = "https://apis.bankcode-jp.com/v3/";
 
-    /**
-     *  API認証キー
-     * 補足：
-     * 認証はリクエストパラメータまたはリクエストヘッダに設定されたAPIキーを介して実行されます。
-     * すべてのAPIリクエストはHTTPSを介して行われる必要があります。
-     * 認証なしのAPIリクエストを繰り返すと、クライアントIPアドレス、リファラに対してアクセス制限が発生します。
-     * */
-    const BankcodeJpApiKey = "9HQW3nN3DTK9xwTZ9Ha2WV2RikseSd";
+    ///**
+    // *  API認証キー
+    // * 補足：
+    // * 認証はリクエストパラメータまたはリクエストヘッダに設定されたAPIキーを介して実行されます。
+    // * すべてのAPIリクエストはHTTPSを介して行われる必要があります。
+    // * 認証なしのAPIリクエストを繰り返すと、クライアントIPアドレス、リファラに対してアクセス制限が発生します。
+    // * */
+    //const BankcodeJpApiKey = "9HQW3nN3DTK9xwTZ9Ha2WV2RikseSd";
 
-    /**
-     * 銀行コード・支店コードから自動で銀行名・支店名を取得してセット + JSON表示
-     */
-    function UpdateBankAndBranchInfo(bankcode, branchcode) {
+    ///**
+    // * 銀行コード・支店コードから自動で銀行名・支店名を取得してセット + JSON表示
+    // */
+    //function UpdateBankAndBranchInfo(bankcode, branchcode) {
 
-        // 銀行コードが無い場合は両方クリア
-        if (!bankcode) {
-            $('#txt-bankName').val("");
-            $('#txt-branchName').val("");
-            $('#api-result').text("");
-            return;
-        }
+    //    // 銀行コードが無い場合は両方クリア
+    //    if (!bankcode) {
+    //        $('#txt-bankName').val("");
+    //        $('#txt-branchName').val("");
+    //        $('#api-result').text("");
+    //        return;
+    //    }
 
-        // 銀行情報取得
-        let bankUrl = BankcodeBaseUrl + "banks/" + bankcode;
+    //    // 銀行情報取得
+    //    let bankUrl = BankcodeBaseUrl + "banks/" + bankcode;
 
-        ExecuteBankcodeApi('GET', bankUrl, function (bankData) {
-            // JSON表示（銀行情報）
-            $('#api-result').text(JSON.stringify(bankData, null, 2));
+    //    ExecuteBankcodeApi('GET', bankUrl, function (bankData) {
+    //        // JSON表示（銀行情報）
+    //        $('#api-result').text(JSON.stringify(bankData, null, 2));
 
-            if (bankData && Object.keys(bankData).length) {
-                $('#txt-bankName').val(bankData.halfWidthKana);
-            } else {
-                $('#txt-bankName').val("");
-            }
+    //        if (bankData && Object.keys(bankData).length) {
+    //            $('#txt-bankName').val(bankData.halfWidthKana);
+    //        } else {
+    //            $('#txt-bankName').val("");
+    //        }
 
-            // 支店コードがあれば支店情報も取得
-            if (branchcode) {
-                let branchUrl = BankcodeBaseUrl + "banks/" + bankcode + "/branches/" + branchcode;
+    //        // 支店コードがあれば支店情報も取得
+    //        if (branchcode) {
+    //            let branchUrl = BankcodeBaseUrl + "banks/" + bankcode + "/branches/" + branchcode;
 
-                ExecuteBankcodeApi('GET', branchUrl, function (branchData) {
-                    // JSON表示（支店情報）
-                    $('#api-result').text(JSON.stringify(branchData, null, 2));
+    //            ExecuteBankcodeApi('GET', branchUrl, function (branchData) {
+    //                // JSON表示（支店情報）
+    //                $('#api-result').text(JSON.stringify(branchData, null, 2));
 
-                    if (branchData && Object.keys(branchData).length) {
-                        $('#txt-branchName').val(branchData.branch.halfWidthKana);
-                    } else {
-                        $('#txt-branchName').val("");
-                    }
-                }, function () {
-                    // 支店取得失敗時
-                    $('#txt-branchName').val("");
-                });
-            } else {
-                // 支店コードが無い場合はクリア
-                $('#txt-branchName').val("");
-            }
+    //                if (branchData && Object.keys(branchData).length) {
+    //                    $('#txt-branchName').val(branchData.branch.halfWidthKana);
+    //                } else {
+    //                    $('#txt-branchName').val("");
+    //                }
+    //            }, function () {
+    //                // 支店取得失敗時
+    //                $('#txt-branchName').val("");
+    //            });
+    //        } else {
+    //            // 支店コードが無い場合はクリア
+    //            $('#txt-branchName').val("");
+    //        }
 
-        }, function () {
-            // 銀行取得失敗時
-            $('#txt-bankName').val("");
-            $('#txt-branchName').val("");
-            $('#api-result').text("");
-        });
-    }
+    //    }, function () {
+    //        // 銀行取得失敗時
+    //        $('#txt-bankName').val("");
+    //        $('#txt-branchName').val("");
+    //        $('#api-result').text("");
+    //    });
+    //}
 
-    /**
-     * APIの実行
-     */
-    function ExecuteBankcodeApi(type, url, successAction, errorAction = function () { }) {
-        $.ajax({
-            type: type,
-            url: url,
-            dataType: 'json',
-            headers: {
-                'apikey': BankcodeJpApiKey,
-            },
-            cache: false, //キャッシュ無効化
-            async: true,  //非同期
-            success: function (data) {
-                successAction(data);
-            },
-            error: function (XMLHttpRequest) {
-                errorAction(XMLHttpRequest);
-            }
-        });
-    }
+    ///**
+    // * APIの実行
+    // */
+    //function ExecuteBankcodeApi(type, url, successAction, errorAction = function () { }) {
+    //    $.ajax({
+    //        type: type,
+    //        url: url,
+    //        dataType: 'json',
+    //        headers: {
+    //            'apikey': BankcodeJpApiKey,
+    //        },
+    //        cache: false, //キャッシュ無効化
+    //        async: true,  //非同期
+    //        success: function (data) {
+    //            successAction(data);
+    //        },
+    //        error: function (XMLHttpRequest) {
+    //            errorAction(XMLHttpRequest);
+    //        }
+    //    });
+    //}
 
     //#endregion
 
+    var lastExpression = "";  //計算した式を保存
     //#region 電卓の処理
+    // カンマを付ける
+    function addComma(str) {
+        // 小数点があるか？
+        if (str.includes(".")) {
+            let [intPart, decimalPart] = str.split(".");
+
+            // 整数部分だけカンマ付け
+            intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+            // 小数部分はそのまま
+            return intPart + "." + decimalPart;
+        }
+
+        // 小数なし（整数のみ）
+        return str.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // カンマを外す
+    function removeComma(str) {
+        return str.replace(/,/g, "");
+    }
+
     function get_calc(btn) {
+
         if (btn.value == "=") {
             //末尾が数値ではない場合は計算しない
-            if (isNaN(document.dentaku.display.value.slice(-1)) == true) {
+            if ((isNaN(document.dentaku.display.value.slice(-1)) == true) &&
+                (document.dentaku.display.value.slice(-1) != ")")) {
                 return;
             }
-            //表示されている文字を計算し、計算結果を表示する
-            //TODO: evalはXSS等のセキュリティ脆弱性を突く攻撃につながるため余裕あれば別のものにする
-            result = eval(document.dentaku.display.value);
-            document.dentaku.display.value = eval(document.dentaku.display.value);
 
+            //式を保存（カンマ付きのまま保存してOK）
+            lastExpression = document.dentaku.display.value;
+
+            //計算前にカンマを除去する
+            let expr = removeComma(document.dentaku.display.value);
+
+            //evalで計算
+            let result = eval(expr);
+
+            //結果にカンマを付ける
+            document.dentaku.display.value = addComma(String(result));
+
+            //計算結果が777、3の倍数のときの特殊演出
+            setTimeout(() => {
+                if (result === 777) {
+
+                    alert("ラッキーセブン！\nやったーーーーーーー");
+                }
+                else if (result % 3 === 0) {
+                    alert("😎 3 の倍数だからアホになります！\n\nざんね～～～～～～～～～～ん！！！");
+                }
+            }, 10);
+
+            return;
         } else if (btn.value == "C") {
             //表示されている文字を空にする
             document.dentaku.display.value = "";
-        } else if (btn.value == "式") {
-            //式表示
-            document.dentaku.display.value = result;
         } else {
             if (btn.value == "×") {
                 //乗算演算子に変換
@@ -185,6 +227,13 @@
             }
             //表示文字の設定
             document.dentaku.display.value += btn.value;
+
+            //計算前にカンマを除去する
+            let expr = removeComma(document.dentaku.display.value);
+
+            //結果にカンマを付ける
+            document.dentaku.display.value = addComma(String(expr));
+
             //変換した文字を元に戻す
             document.dentaku.multi_btn.value = "×";
             document.dentaku.div_btn.value = "÷";
@@ -193,12 +242,19 @@
 
     function backspace() {
         //表示されている文字の末尾一文字を削除する
-        document.dentaku.display.value = document.dentaku.display.value.slice(0, -1);
+        //カンマの位置も調整
+        let expr = removeComma(document.dentaku.display.value);
+        let result = expr.slice(0, -1);
+        document.dentaku.display.value = addComma(String(result));
     }
 
-    function turn() {
-        document.dentaku.display.value = result;
+    function showFormula() {
+        //式を表示する
+        document.dentaku.display.value = lastExpression;
     }
+
+
+
     //#endregion</script>
 <style>
     .action-link {
